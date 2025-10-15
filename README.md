@@ -1,2 +1,22 @@
-# subriemannian-path-planning-for-dubins-car
-An analytical path planning algorithm for Dubins Car based on Sub-Riemannian geometry and optimal control theory
+# Sub-Riemann幾何学に基づくDubins Carの最短経路計画
+
+## 1. プロジェクト概要
+(このプロジェクトが何であるかを1〜2文で説明)
+
+## 2. 背景：なぜ力任せの探索ではダメなのか？
+(A*などの探索アルゴリズムの問題点（次元の呪い）について簡潔に記述)
+
+## 3. 理論：なぜ解析解が可能なのか？ (あなたのショーケース)
+(この問題がサブリーマン幾何学の測地線問題として定式化できること、PMPとハミルトン方程式、そして「解の構造がCとSの組み合わせになる」という結論までの流れを記述)
+
+## 4. アルゴリズム
+(理論に基づき、6つの経路候補パターン（RSLなど）を幾何学的に計算し、最短なものを選択するアプローチを取ったことを説明)
+
+## 5. シミュレーション結果
+(このセクションは、後でシミュレーションが完成してから執筆。ここに結果の画像を貼り付ける)
+
+## 6. 実行方法
+(必要なライブラリ（numpy, matplotlib）と、プログラムの実行コマンドを記述)
+```
+python src/main.py
+```
