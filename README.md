@@ -1,4 +1,4 @@
-# Sub-Riemann幾何学に基づくDubins Carの最短経路計画
+# sub-Riemann幾何学に基づくDubins carの最短経路計画
 
 ## 1. プロジェクト概要
 (このプロジェクトが何であるかを1〜2文で説明)
