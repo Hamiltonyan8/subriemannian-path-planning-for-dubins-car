@@ -1,0 +1,182 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+
+% -----------------------------
+% 日本語対応 (luatexja)
+\usepackage{luatexja}
+\usepackage[no-math]{luatexja-fontspec}
+
+% -----------------------------
+% 数式 (標準) 
+\usepackage{amsmath,amssymb,amsthm}
+
+% -----------------------------
+% 余白設定
+\usepackage[top=25mm, bottom=25mm, left=25mm, right=25mm]{geometry} % A4余白設定
+
+% -----------------------------
+% 図 (標準)
+\usepackage{graphicx}
+
+% -----------------------------
+% ハイパーリンク
+\usepackage{hyperref}
+
+% -----------------------------
+% パッケージ
+\usepackage[normal]{fixdif}
+\resetdfont{\mathsf}
+
+
+
+% 定理・定義環境
+\theoremstyle{definition}
+\newtheorem{definition}{定義}[section]
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[section]
+
+% ハイパーリンクの色
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=green,
+    urlcolor=blue
+}
+
+% % ------------------------
+% % theoremstyle
+% % ------------------------
+% \theoremstyle{definition}
+
+% % ------------------------
+% % newtheoem
+% % ------------------------
+% \newtheorem{ax}{公理}[section]
+% \newtheorem{defin}[ax]{定義}
+% \newtheorem{thm}[ax]{定理}
+% \newtheorem{prop}[ax]{命題}
+% \newtheorem{lem}[ax]{補題}
+% \newtheorem{cor}[ax]{系}
+% \newtheorem{exm}[ax]{例}
+% \newtheorem{nb}[ax]{注意}
+% \newtheorem{exc}[ax]{演習}
+% \newtheorem{ans}[ax]{解答}
+
+% \newtheorem*{ax*}{公理}
+% \newtheorem*{defin*}{定義}
+% \newtheorem*{thm*}{定理}
+% \newtheorem*{prop*}{命題}
+% \newtheorem*{lem*}{補題}
+% \newtheorem*{cor*}{系}
+% \newtheorem*{exm*}{例}
+% \newtheorem*{nb*}{注意}
+% \newtheorem*{exc*}{演習}
+% \newtheorem*{ans*}{解答}
+
+
+% ------------------------
+% newmacro
+% ------------------------
+\def \fin{\hfill $\blacksquare$}
+\def\inner<#1>{\langle #1 \rangle}
+
+% ------------------------
+% commmand
+% ------------------------
+\renewcommand\proofname{証明}
+
+\newcommand{\nn}{\mathbf{N}} % 自然数全体の集合
+\newcommand{\zz}{\mathbf{Z}} % 整数全体の集合
+\newcommand{\qq}{\mathbf{Q}} % 有理数全体の集合
+\newcommand{\rr}{\mathbf{R}} % 実数全体の集合
+\newcommand{\cc}{\mathbf{C}} % 複素数全体の集合
+
+\newcommand{\trans}{\mathop{\mathsf{T}}\nolimits} % 転置
+\newcommand{\Ker}{\mathop{\mathrm{Ker}}\nolimits} % 核
+\newcommand{\Img}{\mathop{\mathrm{Im}}\nolimits} % 像
+\newcommand{\Span}{\mathop{\mathrm{Span}}\nolimits} % 像
+
+% -----------------------------
+% タイトル・著者・日付
+\title{sub--Riemannian幾何学}
+\author{立命館大学大学院理工学研究科 基礎理工学専攻 数理科学コース\\
+工藤 堅太 (Kenta Kudo)\thanks{e-mail: ra0119ef@ed.ritsumei.ac.jp}}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+本稿は、自律移動ロボットの最短経路問題として著名なDubins Car問題を、現代的な幾何学的制御理論の観点から再定式化し、その厳密解を導出するアルゴリズムを提案するものである。具体的には、問題をサブリーマン多様体上の測地線問題として捉え、Lie群の対称性を利用したLie-Poisson簡約化を適用する。これにより、無限次元の最適化問題が、Lie代数の双対空間における有限次元の力学系に帰着することを示す。最終的に、この理論的洞察に基づき、最短経路を高々6種類の候補から代数的に選択する高速なアルゴリズムを設計し、そのPythonによる実装を示す。本研究は、抽象的な数学理論と具体的な工学応用を結びつける一例である。
+\end{abstract}
+
+\section{サブリーマン測地流とHamilton形式}
+サブリーマン多様体 \((Q, D, g_D)\) は、多様体 \(Q\)、その接束 \(TQ\) の部分束である分布 \(D\)、および \(D\) 上で定義されたリーマン計量 \(g_D\) の組で与えられる。速度ベクトルが常に分布 \(D\) に含まれるという非ホロノミック拘束 \(\dot{q}(t) \in D_{q(t)}\) の下で、経路長を最小化する曲線がサブリーマン測地線である。
+
+この測地線の流れは、ハミルトン力学の言語で記述するのが最も見通しが良い。余接束 \(T^*Q\) 上に、計量 \(g_D\) から自然に誘導されるハミルトニアン \(H: T^*Q \to \mathbb{R}\) を次式で定義する。
+\begin{equation}
+    H(q, p) = \frac{1}{2} \max_{v \in D_q, \|v\|_{g_D}=1} (p(v))^2
+\end{equation}
+このハミルトニアン \(H\) と \(T^*Q\) の標準的なシンプレクティック形式 \(\omega_{\text{can}}\) から定まるハミルトンベクトル場 \(X_H\) の積分曲線が、正規サブリーマン測地線を定める。これは、物理的な制約を持つ力学系を、相空間上の幾何学的な流れとして捉える視点を与える。
+
+\section{Lie群の対称性とLie-Poisson簡約化}
+考察対象の系がLie群 \(G\) 上で定義され、かつハミルトニアンが左移動作用で不変である場合、力学系は劇的に単純化される。この系の自由度は、高次元の相空間 \(T^*G\) から、Lie代数の双対空間 \(\mathfrak{g}^*\) へと次元削減できる。これがLie-Poisson簡約化である。
+
+\begin{theorem}[Lie-Poisson方程式]
+左不変なハミルトニアン \(H\) は、\(\mathfrak{g}^*\) 上の関数 \(h: \mathfrak{g}^* \to \mathbb{R}\) を誘導する。このとき、機体座標系で見た運動量 \(\mu \in \mathfrak{g}^*\) の時間発展は、次の方程式で記述される。
+\begin{equation}
+    \frac{d\mu}{dt} = \mathrm{ad}^*_{\frac{\partial h}{\partial \mu}} \mu
+\end{equation}
+ここで \(\mathrm{ad}^*\) は余随伴作用の無限小表現であり、\(\frac{\partial h}{\partial \mu}\) は \(\mathfrak{g}\) の元（機体座標系での速度）と見なせる。
+\end{theorem}
+
+この方程式の重要な特徴は、Casimir関数 \(C: \mathfrak{g}^* \to \mathbb{R}\) と呼ばれる保存量が存在することである。これにより、運動量 \(\mu(t)\) の軌道は、\(\mathfrak{g}^*\) 内の特定の超曲面（Coadjoint Orbit）に拘束される。
+
+\section{Dubins問題への応用}
+Dubins Car問題の配位空間は、特殊ユークリッド群 \(\mathrm{SE}(2) \cong \mathbb{R}^2 \rtimes S^1\) である。前進および純粋回転に対応するベクトル場を \(X_1, X_3\) とすると、分布は \(D = \mathrm{span}\{X_1, X_3\}\) となる。この系は左不変であり、Lie-Poisson簡約化を適用できる。
+
+\(\mathfrak{se}(2)^*\) 上の運動量を \(\mu = (\mu_1, \mu_2, \mu_3)\) とすると、Casimir関数は \(C(\mu) = \mu_1^2 + \mu_2^2\) となる。これは、運動量軌道が \(\mu_3\) 軸を軸とする円柱面に拘束されることを意味する。さらに、非ホロノミック拘束から \(\mu_2 = 0\) が導かれ、結果として運動量軌道は円柱と平面 \(\mu_2 = 0\) の交線、すなわち2本の直線 \(\mu_1 = \text{const.}\) 上にあることがわかる。Lie-Poisson方程式を解くと、各測地線セグメントにおいて \(\mu\) は定数ベクトルとなることが示される。
+
+この運動量 \(\mu\) を物理的な運動に翻訳すると、
+\begin{itemize}
+    \item \(\mu_3 \neq 0\) の場合：角速度が一定の**円弧運動 (C)**
+    \item \(\mu_3 = 0\) の場合：角速度がゼロの**直線運動 (S)**
+\end{itemize}
+となり、最適経路がCとSの組み合わせから成ることが理論的に裏付けられる。Sussmannらのスイッチング理論によれば、最短経路を構成するセグメントは高々3つであり、そのトポロジーは **CSC型** または **CCC型** に限定される。
+
+\section{Pythonによるアルゴリズム実装}
+上記の理論的結論は、具体的なアルゴリズム設計に直結する。すなわち、無限の経路候補を探索する代わりに、高々6種類の候補トポロジー（LSL, RSR, LSR, RSL, LRL, RLR）について、それぞれ初期状態と最終状態を結ぶ経路長を解析的に導出し、その最小値を選択すればよい。各候補経路のセグメント長は、三角関数を用いた閉じた形の数式で与えられるため、このアルゴ-リズムは計算量が状態空間の解像度に依存せず、常に一定時間で厳密な最適解を保証する。
+
+本アルゴリズムの完全なPython実装、およびシミュレーションによる可視化スクリプトは、以下のGitHubリポジトリにて公開している。リポジトリ内のドキュメントには、各計算式の導出過程や実装上の詳細な注意点も含まれている。
+
+\begin{center}
+    \url{https://github.com/Hamiltonyan8/dubins-path-geometric}
+\end{center}
+
+\section{結論と今後の展望}
+本研究では、サブリーマン幾何学とLie-Poisson簡約化という数学的ツールキットを用いることで、Dubins Car問題に対する深い洞察と、それに基づく効率的なアルゴリズムを導出した。これは、抽象理論が具体的な工学問題の解決に如何に貢献できるかを示す好例である。
+
+今後の展望としては、後退を許すReeds-Shepp Car問題への拡張、ドローンなどの3次元運動を記述する\(\mathrm{SE}(3)\)上の測地線問題、さらには障害物回避を組み込んだ動的な経路計画問題などが挙げられる。私の持つ、物理現象から数学モデルを構築し、理論的解析を通じて本質的な解を導出する能力は、こうした先進的な研究開発において大きな貢献ができるものと確信している。
+
+\begin{thebibliography}{9}
+    \bibitem{Jurdjevic1997}
+    V. Jurdjevic, \textit{Geometric Control Theory}, Cambridge University Press, 1997.
+    
+    \bibitem{Montgomery2002}
+    R. Montgomery, \textit{A Tour of Subriemannian Geometries, Their Geodesics and Applications}, AMS, 2002.
+    
+    \bibitem{Sussmann1991}
+    H. J. Sussmann and G. Tang, "On the geometry of the Dubins problem," in \textit{Proceedings of the 29th IEEE Conference on Decision and Control}, 1990, pp. 326-331.
+
+\end{thebibliography}
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+\end{document}
